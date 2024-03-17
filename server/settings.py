@@ -12,14 +12,22 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import logging
 import os
 from pathlib import Path
+import json
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
+def read_config():
+    config_data = {}
+    config_path = os.path.join(BASE_DIR, 'config.json')
+    if os.path.exists(config_path):
+        with open(config_path, 'r') as file:
+            config_data = json.load(file)
+    return config_data
+
+
+config = read_config()
 SECRET_KEY = os.environ.get("WORKFLOW_INTEGRATOR_DJANGO_SECRET_KEY", None)
 if not SECRET_KEY:
     print("SECRET_KEY not found")
@@ -83,13 +91,25 @@ WSGI_APPLICATION = "server.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if config.get("DATABASE", None) == "POSTGRES":
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get("WORKFLOW_INTEGRATOR_POSTGRES_DATABASE", None),
+            'USER': os.environ.get("WORKFLOW_INTEGRATOR_POSTGRES_USERNAME", None),
+            'PASSWORD': os.environ.get("WORKFLOW_INTEGRATOR_POSTGRES_PASSWORD", None),
+            'HOST': os.environ.get("WORKFLOW_INTEGRATOR_POSTGRES_HOST", None),
+            'PORT': int(os.environ.get("WORKFLOW_INTEGRATOR_POSTGRES_PORT", None))
+        }
     }
-}
+
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -134,5 +154,4 @@ APPLICATION_NAME = "WFIT"
 logger = logging.getLogger("wfit")
 logging.basicConfig(filename='wfit.log', level=logging.DEBUG,
                     format='%(asctime)s - %(levelname)s - %(message)s')
-
 

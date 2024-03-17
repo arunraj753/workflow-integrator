@@ -1,0 +1,30 @@
+{% extends 'wfit/base.html' %}
+{% block content %}
+
+
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        
+        <div class="card-body text-center">
+          <h5>{{job_name}}</h5>
+          <hr>
+          <form method="post">
+            {% csrf_token %}
+            <label for="job_tracker_id">job_tracker_id</label><br>
+            <input type="number" id="job_tracker_id" name="job_tracker_id" value="{{job_tracker_id}}" readonly><br>
+            <label for="value">Time Invested:</label><br>
+            <input type="number" id="time_from_user" name="time_from_user" placeholder="Enter time in minutes" required><br><br>
+            <input type="submit" value="Submit">
+        </form>
+        </div>
+      </div>
+    </div>
+    
+   
+  
+    
+  </div>
+</div>
+{% endblock %}

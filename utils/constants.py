@@ -29,8 +29,18 @@ WORKFLOW_STAGE_CHOICES = [
 DEFAULT_DUE_TIME = "18:29:59.000"
 TRELLO_TIME_DELTA = timedelta(hours=5, minutes=30)
 
+# Labels
+BLUE_DARK = "blue_dark"
+SKY_DARK = "sky_dark"
+PURPLE_DARK = "purple_dark"
+RED_DARK = "red_dark"
+ORANGE_DARK = "orange_dark"
+ORANGE = "orange"
+ORANGE_LIGHT = "orange_light"
 GREEN = "green"
 YELLOW = "yellow"
+
+
 OWNER_LABEL_NAME = "Owner"
 COLLABORATOR_LABEL_NAME = "Collaborator"
 OWNER_LABEL_COLOR = GREEN

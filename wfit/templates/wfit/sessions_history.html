@@ -1,0 +1,33 @@
+{% extends 'wfit/base.html' %}
+{% block content %}
+<div class="container">
+    <br>
+    <h4>{{title}}</h4>
+    
+    <h6>{{start_to_end}}</h6>
+    <h6>Time Invested: {{total_time_invested}} Minutes</h6>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Job</th>
+                <th>Journal Date</th>
+                <th>Time (In Minutes)</th>
+                <th>Status</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {% for journal in job_tracker_journals %}
+            <tr>
+                <td>{{ journal.job_tracker.job_card.name }}</td>
+                <td>{{ journal.journal_date }}</td>
+                <td>{{ journal.time_invested }}</td>
+                <td>{{ journal.job_tracker.job_card.trello_list.trello_list_name }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+{% endblock %}

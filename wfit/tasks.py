@@ -10,7 +10,7 @@ from utils.constants import SYNC_TRELLO_BOARDS, SYNC_TRELLO_LISTS, SYNC_TRELLO_L
     WF_CLOSED_VALUE, WF_IN_PROGRESS_VALUE, DEFAULT_DUE_TIME, COLLABORATOR_LABEL_NAME, OWNER_LABEL_NAME, \
     COLLABORATOR_CHECKLIST_NAME, TRELLO_DOMAIN, CHECK_ITEM_COMPLETE
 from utils.utils import string_to_bool, get_required_batches, trello_date_to_python_date
-from wfit.models import TrelloBoard, GlobalConfig, TrelloList, TrelloLabel, JobCard, JobTracker
+from wfit.models import TrelloBoard, GlobalConfig, TrelloList, TrelloLabel, JobCard, JobTracker, Project, Release
 
 TRELLO_API_BATCH_SIZE = 10
 
@@ -306,14 +306,36 @@ class WorkFlowIntegrator:
         self.logger(f"Created JobCard. Card name: {trello_card['name']}")
         return job_card_created_obj
 
+    # def get_or_create_release(self, trello_card):
+    #     release_name = trello_card["name"]
+    #     self.logger(f"get_or_create. Release name : {release_name}")
+    #     release_obj, created = Release.objects.get_or_create(name=release_name)
+    #     return release_obj
+
+    def get_or_create_project(self, project_name):
+        self.logger(f"get_or_create. Project name : {project_name}")
+        project_obj, created = Project.objects.get_or_create(name=project_name, label_name=project_name)
+        return project_obj
+
     def update_job_card(self, trello_card, job_card_obj):
         update = False
         trello_card_name = trello_card["name"]
         if trello_card_name != job_card_obj.name:
+            job_card_obj.name = trello_card_name
             update = True
+        project_obj, project_name = self.helper.get_project(trello_card)
+        if project_obj:
+            if job_card_obj.project != project_obj:
+                job_card_obj.project = project_obj
+                update = True
+
+        if not project_obj and project_name:
+            project_obj = self.get_or_create_project(project_name)
+            job_card_obj.project = project_obj
+            update = True
+
         if update:
             self.logger(f"Updating JobCard. Card name: {trello_card_name}")
-            job_card_obj.name = trello_card_name
             job_card_obj.save()
 
     def create_job_tracker(self, trello_card, job_card_obj):

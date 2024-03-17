@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.utils.timezone import now
 
 from utils.constants import WORKFLOW_STAGE_CHOICES
 
@@ -80,7 +81,7 @@ class Client(models.Model):
 
 class Project(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, null=True, blank=True)
     parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True)
     label_name = models.CharField(max_length=50, unique=True)
     planned_start = models.DateField(null=True, blank=True)
@@ -159,14 +160,33 @@ class JobTracker(models.Model):
         return self.job_card.name
 
 
-class JobLog(models.Model):
+class JobTrackerJournal(models.Model):
     job_tracker = models.ForeignKey(JobTracker, on_delete=models.DO_NOTHING)
-    day = models.DateField(default=timezone.now)
-    time_invested = models.IntegerField()
+    journal_date = models.DateField(blank=True, null=True)
+    time_from_user = models.IntegerField(default=0)
+    time_from_sessions = models.IntegerField(default=0)
+    time_invested = models.IntegerField(default=0)
     time_unit = models.CharField(max_length=50, default="minutes")
+    user_verified = models.BooleanField(default=False)
 
     class Meta:
-        db_table = "job_log"
+        db_table = "job_tracker_journal"
+        unique_together = ('job_tracker', 'journal_date')
 
     def __str__(self):
-        return f"{self.job_tracker.job_card.name} -- {self.day}"
+        return f"{self.job_tracker.job_card.name} -- {self.journal_date}"
+
+
+class Session(models.Model):
+    job_tracker = models.ForeignKey(JobTracker, on_delete=models.DO_NOTHING)
+    start_time = models.DateTimeField(default=now)
+    end_time = models.DateTimeField(null=True, blank=True)
+    time_invested = models.IntegerField(null=True, blank=True, default=0)
+    time_unit = models.CharField(max_length=50, default="minutes")
+    is_completed = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "session"
+
+    def __str__(self):
+        return f"{self.job_tracker.job_card.name} -- {self.start_time}"

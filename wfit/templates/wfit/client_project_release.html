@@ -1,0 +1,26 @@
+{% extends 'wfit/base.html' %}
+{% block content %}
+<div class="container">
+    <div class="d-flex align-items-center justify-content-center">
+
+            <h3>{{title}}</h3>
+
+
+    </div>
+    <br>
+    <div class="row">
+        {% for record in records %}
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <a href="{% url 'choose-timeframe' pk=record.id  requestor=requestor%}">{{ record.name }}</a>
+                    </h5>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

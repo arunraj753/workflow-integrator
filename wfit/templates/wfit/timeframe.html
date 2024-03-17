@@ -1,0 +1,42 @@
+{% extends 'wfit/base.html' %}
+{% block content %}
+<div class="container">
+    <div class="d-flex align-items-center justify-content-center">
+
+            <h3>Choose time-frame</h3>
+
+
+    </div>
+    <br>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <a href="{% url 'journal' pk=pk start_date=today end_date=today requestor=requestor%}">Today</a>
+                    </h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <a href="{% url 'journal' pk=pk start_date=week_start end_date=today requestor=requestor%}">This Week</a>
+                    </h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <a href="{% url 'journal' pk=pk start_date=month_start end_date=today requestor=requestor%}">This Month</a>
+                    </h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

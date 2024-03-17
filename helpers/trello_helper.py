@@ -1,6 +1,6 @@
 from server.settings import logger
-from utils.constants import WF_READY_VALUE
-from wfit.models import TrelloBoard, TrelloList, TrelloLabel
+from utils.constants import WF_READY_VALUE, BLUE_DARK
+from wfit.models import TrelloBoard, TrelloList, TrelloLabel, Project, Release
 
 
 class TrelloHelper:
@@ -15,6 +15,7 @@ class TrelloHelper:
         self.board_id_ready_list_id = {}
         self.label_id_name_dict = {}
         self.label_name_id_dict = {}
+        self.project_name_id_dict = {}
 
     def logger(self, message, log_level="info"):
         logger.info(message)
@@ -52,6 +53,14 @@ class TrelloHelper:
             else:
                 self.label_name_id_dict.update({trello_board_id: {trello_label_name: trello_label_id}})
 
+        project_queryset = Project.objects.all()
+        for project_obj in project_queryset:
+            self.project_name_id_dict.update({project_obj.name: project_obj})
+
+        release_queryset = Release.objects.all()
+        for release_obj in release_queryset:
+            self.project_name_id_dict.update({release_obj.name: release_obj})
+
     def get_trello_board_instance(self, trello_board_id):
         return self.board_id_board_instance[trello_board_id]
 
@@ -79,3 +88,18 @@ class TrelloHelper:
             if label_name in label_names_list:
                 label_ids.append(label_id)
         return label_ids
+
+    def get_project(self, trello_card):
+        print("self.project_name_id_dict")
+        project_labels = []
+        project_obj = None
+        project_label_name = None
+        for label_details in trello_card["labels"]:
+            if label_details["color"] == BLUE_DARK:
+                project_labels.append(label_details["name"])
+        if len(project_labels) > 1:
+            raise Exception(f"Multiple projects are associated with the card: {trello_card['name']}")
+        if project_labels:
+            project_label_name = project_labels[0]
+            project_obj = self.project_name_id_dict.get(project_label_name, None)
+        return project_obj, project_label_name

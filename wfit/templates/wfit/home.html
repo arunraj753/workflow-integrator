@@ -1,0 +1,51 @@
+{% extends 'wfit/base.html' %}
+{% block content %}
+
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <a href="{% url 'client-project-release' requestor='user'%}" class="btn">User</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <a href="{% url 'client-project-release' requestor='client'%}" class="btn">Clients</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <a href="{% url 'client-project-release' requestor='project'%}" class="btn">Projects</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <a href="{% url 'client-project-release' requestor='release'%}" class="btn">Releases</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<hr>
+<div class="container">
+  <div class="row justify-content-center">
+    {% for trello_board in trello_boards %}
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <a href="#" class="btn">{{trello_board.trello_board_name}}</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>
+</div>
+{% endblock %}
