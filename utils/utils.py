@@ -19,7 +19,9 @@ def get_required_batches(data: list, batch_size):
     mod = len(data) % batch_size
     quotient = int(len(data) / batch_size)
     if quotient:
-        return int(len(data) / batch_size) + mod
+        if mod:
+            return int(len(data) / batch_size) + 1
+        return int(len(data) / batch_size)
     return 1
 
 
