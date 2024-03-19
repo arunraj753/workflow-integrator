@@ -161,7 +161,7 @@ class JobTracker(models.Model):
 
 
 class JobTrackerJournal(models.Model):
-    job_tracker = models.ForeignKey(JobTracker, on_delete=models.DO_NOTHING)
+    job_tracker = models.ForeignKey(JobTracker, on_delete=models.CASCADE)
     journal_date = models.DateField(blank=True, null=True)
     time_from_user = models.IntegerField(default=0)
     time_from_sessions = models.IntegerField(default=0)
