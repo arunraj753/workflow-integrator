@@ -27,7 +27,7 @@ def read_config():
     return config_data
 
 
-config = read_config()
+WORKFLOW_CONFIG = read_config()
 SECRET_KEY = os.environ.get("WORKFLOW_INTEGRATOR_DJANGO_SECRET_KEY", None)
 if not SECRET_KEY:
     print("SECRET_KEY not found")
@@ -91,7 +91,7 @@ WSGI_APPLICATION = "server.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-if config.get("DATABASE", None) == "POSTGRES":
+if WORKFLOW_CONFIG.get("DATABASE", None) == "POSTGRES":
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',

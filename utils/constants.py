@@ -55,3 +55,5 @@ CHECK_ITEM_COMPLETE = "complete"
 # URLs
 TRELLO_DOMAIN = "https://trello.com/"
 
+
+HEADER_CARDS = "HEADER_CARDS"

@@ -1,14 +1,14 @@
 from datetime import date, datetime
 
 from helpers.trello_helper import TrelloHelper
-from server.settings import logger
+from server.settings import logger, WORKFLOW_CONFIG
 from trello_modules.boards import TrelloBoardModule
 from trello_modules.cards import TrelloCardModule
 from trello_modules.labels import TrelloLabelModule
 from trello_modules.lists import TrelloListModule
 from utils.constants import SYNC_TRELLO_BOARDS, SYNC_TRELLO_LISTS, SYNC_TRELLO_LABELS, WF_UNDEFINED, TRELLO_TIME_DELTA, \
     WF_CLOSED_VALUE, WF_IN_PROGRESS_VALUE, DEFAULT_DUE_TIME, COLLABORATOR_LABEL_NAME, OWNER_LABEL_NAME, \
-    COLLABORATOR_CHECKLIST_NAME, TRELLO_DOMAIN, CHECK_ITEM_COMPLETE
+    COLLABORATOR_CHECKLIST_NAME, TRELLO_DOMAIN, CHECK_ITEM_COMPLETE, HEADER_CARDS
 from utils.utils import string_to_bool, get_required_batches, trello_date_to_python_date
 from wfit.models import TrelloBoard, GlobalConfig, TrelloList, TrelloLabel, JobCard, JobTracker, Project, Release
 
@@ -173,6 +173,7 @@ class WorkFlowIntegrator:
             start_index = i * TRELLO_API_BATCH_SIZE
             end_index = start_index + TRELLO_API_BATCH_SIZE
             trello_list_ids_in_batch = trello_list_ids[start_index:end_index]
+            print(trello_list_ids_in_batch)
             tracked_cards = trello.get_cards_in_lists(list_ids=trello_list_ids_in_batch)
             all_tracked_trello_cards.extend(tracked_cards)
             self.logger(f"Pulled trello cards from batch:{i}")
@@ -280,6 +281,16 @@ class WorkFlowIntegrator:
                 self.logger(f"Added Owner Label. Card Name : {trello_card['name']}")
         else:
             self.logger(f"Collaborator cards not found. Card Name : {trello_card['name']}")
+
+    def check_and_delete_if_header(self, trello_card):
+        if trello_card['name'] in WORKFLOW_CONFIG[HEADER_CARDS]:
+            print("del", trello_card['name'])
+            job_card_obj = JobCard.objects.filter(
+                trello_card_id=trello_card["id"]).first()
+            if job_card_obj:
+                job_card_obj.delete()
+            return True
+        return False
 
     def update_trello_card(self, trello_card):
         trello_card_updated = trello_card
@@ -426,6 +437,8 @@ class WorkFlowIntegrator:
         self.logger("Starting update_trello_cards()")
         self.all_tracked_trello_cards = self.get_tracked_trello_cards()
         for trello_card in self.all_tracked_trello_cards:
+            if self.check_and_delete_if_header(trello_card):
+                continue
             trello_card_updated = self.update_trello_card(trello_card)
             self.sync_job_card(trello_card_updated)
 
