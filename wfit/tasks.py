@@ -8,7 +8,7 @@ from trello_modules.labels import TrelloLabelModule
 from trello_modules.lists import TrelloListModule
 from utils.constants import SYNC_TRELLO_BOARDS, SYNC_TRELLO_LISTS, SYNC_TRELLO_LABELS, WF_UNDEFINED, TRELLO_TIME_DELTA, \
     WF_CLOSED_VALUE, WF_IN_PROGRESS_VALUE, DEFAULT_DUE_TIME, COLLABORATOR_LABEL_NAME, OWNER_LABEL_NAME, \
-    COLLABORATOR_CHECKLIST_NAME, TRELLO_DOMAIN, CHECK_ITEM_COMPLETE, HEADER_CARDS
+    COLLABORATOR_CHECKLIST_NAME, TRELLO_DOMAIN, CHECK_ITEM_COMPLETE, HEADER_CARDS, WF_BLOCKED_VALUE
 from utils.utils import string_to_bool, get_required_batches, trello_date_to_python_date
 from wfit.models import TrelloBoard, GlobalConfig, TrelloList, TrelloLabel, JobCard, JobTracker, Project, Release
 
@@ -307,11 +307,10 @@ class WorkFlowIntegrator:
 
     def create_job_card(self, trello_card):
         trello_board_obj = self.helper.get_trello_board_instance(trello_board_id=trello_card["idBoard"])
-        trello_list_obj = self.helper.get_trello_list_instance(trello_list_id=trello_card["idList"])
         self.logger(f"Creating JobCard. Card name: {trello_card['name']}")
         job_card_created_obj = JobCard.objects.create(
             trello_card_id=trello_card["id"], name=trello_card["name"],
-            trello_board=trello_board_obj, trello_list=trello_list_obj,
+            trello_board=trello_board_obj,
             short_url=trello_card["shortUrl"], id_short=trello_card["idShort"]
         )
         self.logger(f"Created JobCard. Card name: {trello_card['name']}")
@@ -351,6 +350,7 @@ class WorkFlowIntegrator:
 
     def create_job_tracker(self, trello_card, job_card_obj):
         self.logger(f"Creating job_tracker for {trello_card['name']}")
+        trello_list_obj = self.helper.get_trello_list_instance(trello_list_id=trello_card["idList"])
         trello_start_date = trello_date_to_python_date(trello_card["start"])
         trello_due_date = trello_date_to_python_date(trello_card["due"])
         is_completed = trello_card["dueComplete"]
@@ -361,16 +361,35 @@ class WorkFlowIntegrator:
         job_tracker_new_obj = JobTracker.objects.create(
             job_card=job_card_obj, planned_start=trello_start_date, planned_finish=trello_due_date,
             actual_start=trello_start_date, actual_finish=actual_finish, current_due=trello_due_date,
-            is_completed=is_completed)
+            is_completed=is_completed, trello_list=trello_list_obj)
         self.logger(f"Created job_tracker for {trello_card['name']}")
         return job_tracker_new_obj
 
     def update_job_tracker(self, trello_card, job_tracker_obj):
         self.logger(f"Updating job_tracker for the card: {trello_card['name']}")
+        trello_list_obj = self.helper.get_trello_list_instance(trello_list_id=trello_card["idList"])
         trello_start_date = trello_date_to_python_date(trello_card["start"])
         trello_due_date = trello_date_to_python_date(trello_card["due"])
         trello_is_completed = trello_card["dueComplete"]
         save_obj = False
+
+        if trello_list_obj.workflow_stage == WF_IN_PROGRESS_VALUE:
+            if job_tracker_obj.pause_journal:
+                job_tracker_obj.pause_journal = False
+                save_obj = True
+
+        if trello_list_obj == job_tracker_obj.trello_list:
+            if trello_list_obj.workflow_stage == WF_BLOCKED_VALUE:
+                if not job_tracker_obj.pause_journal:
+                    job_tracker_obj.pause_journal = True
+                    save_obj = True
+            elif trello_list_obj.workflow_stage == WF_CLOSED_VALUE:
+                if not job_tracker_obj.never_journal:
+                    job_tracker_obj.never_journal = True
+                    save_obj = True
+        else:
+            job_tracker_obj.trello_list = trello_list_obj
+            save_obj = True
 
         if not job_tracker_obj.planned_start and trello_start_date:
             self.logger("Adding planned_start")

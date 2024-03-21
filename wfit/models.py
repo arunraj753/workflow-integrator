@@ -121,10 +121,9 @@ class JobCard(models.Model):
     trello_card_id = models.CharField(max_length=100, unique=True)
     name = models.CharField(max_length=300)
     trello_board = models.ForeignKey(TrelloBoard, on_delete=models.CASCADE)
-    trello_list = models.ForeignKey(TrelloList, on_delete=models.DO_NOTHING)
     description = models.CharField(max_length=255, null=True, blank=True)
     parent = models.ForeignKey("self", on_delete=models.DO_NOTHING, null=True, blank=True)
-    project = models.ForeignKey(Project, on_delete=models.DO_NOTHING, null=True, blank=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True, blank=True)
     is_recurring = models.BooleanField(default=False)
     is_owner = models.BooleanField(default=False)
     is_collaborator = models.BooleanField(default=False)
@@ -140,6 +139,7 @@ class JobCard(models.Model):
 
 class JobTracker(models.Model):
     job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE)
+    trello_list = models.ForeignKey(TrelloList, on_delete=models.CASCADE)
     release = models.ForeignKey(Release, on_delete=models.DO_NOTHING, null=True, blank=True)
     planned_start = models.DateField(null=True, blank=True)
     planned_finish = models.DateField(null=True, blank=True)
@@ -152,6 +152,8 @@ class JobTracker(models.Model):
     being_tracked = models.BooleanField(default=True)
     track_start_date = models.DateField(default=timezone.now)
     track_end_date = models.DateField(blank=True, null=True)
+    pause_journal = models.BooleanField(default=False)
+    never_journal = models.BooleanField(default=False)
 
     class Meta:
         db_table = "job_tracker"

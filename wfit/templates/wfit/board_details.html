@@ -1,20 +1,57 @@
 {% extends 'wfit/base.html' %}
 {% block content %}
 
-
 <div class="container">
   <div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+      <br>
+      <h4> {{trello_board.trello_board_name}}</h4>
+    </div>
+  </div>
+  <div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+      <br>
+      <h4> Workflow Defined Lists</h4>
+    </div>
+  </div>
+  <div class="row justify-content-center">
+    {% for trello_list in workflow_defined_queryset %}
     <div class="col-md-3">
       <div class="card">
         <div class="card-body text-center">
-          Sample
+          <a href="{% url 'change-workflow-stage' trello_list_pk=trello_list.id %}"
+            class="btn">{{trello_list.trello_list_name}}</a>
+        </div>
+        <div class="card-footer text-muted d-flex justify-content-between">
+          <div>{{trello_list.get_workflow_stage_display}}</div>
+          <div>{{trello_list.workflow_stage}}</div>
         </div>
       </div>
     </div>
-    
-   
-  
-    
+    {% endfor %}
+  </div>
+  <hr>
+  <div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+      <br>
+      <h4> Workflow Un-Defined Lists</h4>
+    </div>
+  </div>
+  <div class="row justify-content-center">
+    {% for trello_list in workflow_undefined_queryset %}
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <a href="{% url 'change-workflow-stage' trello_list_pk=trello_list.id %}"
+            class="btn">{{trello_list.trello_list_name}}</a>
+        </div>
+        <div class="card-footer text-muted d-flex justify-content-between">
+          <div>{{trello_list.get_workflow_stage_display}}</div>
+          <div>{{trello_list.workflow_stage}}</div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
   </div>
 </div>
 {% endblock %}
