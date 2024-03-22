@@ -16,7 +16,7 @@
           <div>
             <h6>{{job_card_list}}</h6>
           </div>
-          
+
 
         </div>
 
@@ -27,10 +27,11 @@
             {% csrf_token %}
             <label for="job_tracker_id">job_tracker_id</label><br>
             <input type="number" id="job_tracker_id" name="job_tracker_id" value="{{job_tracker_id}}" readonly><br>
-            <label for="value">Time Invested:</label><br>
-            <input type="number" id="time_from_user" name="time_from_user" placeholder="Enter time in minutes"
-              required><br><br>
-            <input type="submit" value="Submit">
+            <hr>
+            <h6>Time Invested:</h6>
+            <input type="number" id="hours_from_user" name="hours_from_user" placeholder="Enter hours"><br><br>
+            <input type="number" id="minutes_from_user" name="minutes_from_user" placeholder="Enter minutes"><br><br>
+            <input class="btn btn-success" type="submit" value="Submit And Next">
           </form>
         </div>
         <div class="card-footer text-muted d-flex justify-content-between">

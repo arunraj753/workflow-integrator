@@ -102,7 +102,14 @@ def get_job_tracker_journal(request, pk, start_date, end_date, requestor):
         return redirect("home")
     for journal in job_tracker_journal_objects:
         total_time_invested += journal.time_invested
-    context = {"total_time_invested": total_time_invested,
+
+    total_hours_invested = int(total_time_invested / 60)
+    total_minutes_invested = total_time_invested % 60
+    total_hours_unit = "Hours" if total_hours_invested > 1 else "Hour"
+    total_minutes_unit = "Minutes" if total_minutes_invested > 1 else "Minute"
+    total_time_invested_str = (f"{total_hours_invested} {total_hours_unit} " + " and " +
+                               f"{total_minutes_invested} {total_minutes_unit}")
+    context = {"total_time_invested": total_time_invested_str,
                "job_tracker_journals": job_tracker_journal_objects, "title": title,
                "start_to_end": f"{start_date} - {end_date}"}
     return render(request, 'wfit/sessions_history.html', context)
@@ -125,21 +132,39 @@ def create_job_tracker_journal(request):
     if request.method == 'POST':
         try:
             job_tracker_id = request.POST.get('job_tracker_id')
-            time_from_user = request.POST.get('time_from_user')
+            hours_from_user = request.POST.get('hours_from_user', 0)
+            minutes_from_user = request.POST.get('minutes_from_user', 0)
+            if hours_from_user:
+                hours_from_user = int(hours_from_user)
+            else:
+                hours_from_user = 0
+            if minutes_from_user:
+                minutes_from_user = int(minutes_from_user)
+            else:
+                minutes_from_user = 0
             job_tracker_obj = JobTracker.objects.get(id=job_tracker_id)
+            user_invested_time = int(minutes_from_user + (hours_from_user * 60))
+            if not user_invested_time > 0 or hours_from_user < 1 or minutes_from_user < 1:
+                message = (f"Journal entry: {hours_from_user} Hour(s) {minutes_from_user} Minute(s) cannot be added " +
+                           f"for the card: {job_tracker_obj.job_card.name}")
+                messages.error(request, message)
+                return redirect(
+                    "create-journal" + "?date=" + date_string + "&last_tracker_id=" + str(last_tracker_id - 1))
             JobTrackerJournal.objects.create(
                 job_tracker=job_tracker_obj,
                 journal_date=journal_date,
-                time_from_user=time_from_user,
-                time_invested=time_from_user,
+                time_from_user=minutes_from_user,
+                time_invested=user_invested_time,
                 user_verified=True
             )
-            message = f"Journal entry: {time_from_user} minutes added for {job_tracker_obj.job_card.name}"
+            message = (f"Journal entry: {hours_from_user} Hour(s) {minutes_from_user} Minute(s) added " +
+                       f"for the card: {job_tracker_obj.job_card.name}")
             messages.success(request, message)
             return redirect('create-journal' + "?date=" + date_string + "&last_tracker_id=" + str(last_tracker_id))
         except Exception as err:
             messages.error(request, f"Journal entry failed. Reason: {err}")
-            return redirect('create-journal' + '?date=' + date_string)
+            return redirect(
+                "create-journal" + "?date=" + date_string + "&last_tracker_id=" + str(last_tracker_id - 1))
 
     job_tracker_without_journal_entry = JobTracker.objects.filter(
         id__gt=last_tracker_id, being_tracked=True, pause_journal=False, never_journal=False,

@@ -90,7 +90,6 @@ class TrelloHelper:
         return label_ids
 
     def get_project(self, trello_card):
-        print("self.project_name_id_dict")
         project_labels = []
         project_obj = None
         project_label_name = None
