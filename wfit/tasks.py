@@ -11,6 +11,7 @@ from utils.constants import SYNC_TRELLO_BOARDS, SYNC_TRELLO_LISTS, SYNC_TRELLO_L
     COLLABORATOR_CHECKLIST_NAME, TRELLO_DOMAIN, CHECK_ITEM_COMPLETE, HEADER_CARDS, WF_BLOCKED_VALUE
 from utils.utils import string_to_bool, get_required_batches, trello_date_to_python_date
 from wfit.models import TrelloBoard, GlobalConfig, TrelloList, TrelloLabel, JobCard, JobTracker, Project, Release
+from youtube_module.youtube_module import YoutubeModule
 
 TRELLO_API_BATCH_SIZE = 10
 
@@ -20,6 +21,7 @@ class TrelloModule(TrelloBoardModule, TrelloCardModule, TrelloLabelModule, Trell
 
 
 trello = TrelloModule()
+youtube = YoutubeModule()
 
 
 class WorkFlowIntegrator:
@@ -182,6 +184,21 @@ class WorkFlowIntegrator:
         self.logger("Completed get_tracked_trello_cards()")
         return all_tracked_trello_cards
 
+    def update_if_youtube(self, trello_card):
+        card_name = trello_card["name"]
+        video_title, thumbnail_url = youtube.get_thumbnail_and_title(card_name)
+        if video_title:
+            final_card_name = video_title
+            self.logger("Changing Youtube URL to Youtube title")
+            self.logger(f"{card_name} --> {video_title}")
+            trello.create_attachment_on_card(trello_card["id"], url=card_name)
+            trello.update_card(card_id=trello_card["id"], name=final_card_name)
+        if thumbnail_url:
+            self.logger(f"Cover URL for: {card_name} --> {thumbnail_url}")
+            self.logger(f"Adding attachment with setCover=true on the card: {card_name}")
+            trello.create_attachment_on_card(trello_card["id"], url=thumbnail_url, setCover="true")
+        return video_title
+
     def update_start_and_due(self, trello_card):
         update_dict = {}
         card_is_done = trello_card["dueComplete"]
@@ -293,6 +310,7 @@ class WorkFlowIntegrator:
         return False
 
     def update_trello_card(self, trello_card):
+        video_title = self.update_if_youtube(trello_card)
         trello_card_updated = trello_card
         card_update_args = self.update_start_and_due(trello_card)
         if card_update_args:
@@ -303,6 +321,8 @@ class WorkFlowIntegrator:
         else:
             self.logger(f"start_and_due update not required.Card Name: {trello_card['name']}")
         self.update_checklist_of_card(trello_card=trello_card_updated)
+        if video_title:
+            trello_card_updated["name"] = video_title
         return trello_card_updated
 
     def create_job_card(self, trello_card):
