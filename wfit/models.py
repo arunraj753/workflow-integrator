@@ -22,6 +22,7 @@ class IntegrationStatus(models.Model):
     status = models.CharField(max_length=50)
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = models.DateTimeField(null=True, blank=True)
+    metadata = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
         return self.status
@@ -32,6 +33,7 @@ class TrelloBoard(models.Model):
     trello_board_name = models.CharField(max_length=100)
     is_working_board = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    user_verified = models.BooleanField(default=False)
 
     def __str__(self):
         return self.trello_board_name
@@ -45,6 +47,7 @@ class TrelloList(models.Model):
     trello_list_name = models.CharField(max_length=100)
     board = models.ForeignKey(TrelloBoard, on_delete=models.CASCADE)
     workflow_stage = models.IntegerField(choices=WORKFLOW_STAGE_CHOICES, default=0)
+    user_verified = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.trello_list_name} --> {self.board}"

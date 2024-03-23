@@ -1,7 +1,7 @@
 from datetime import date, datetime
 
 from helpers.trello_helper import TrelloHelper
-from server.settings import logger, WORKFLOW_CONFIG
+from server.settings import logger, config_data
 from trello_modules.boards import TrelloBoardModule
 from trello_modules.cards import TrelloCardModule
 from trello_modules.labels import TrelloLabelModule
@@ -300,8 +300,8 @@ class WorkFlowIntegrator:
             self.logger(f"Collaborator cards not found. Card Name : {trello_card['name']}")
 
     def check_and_delete_if_header(self, trello_card):
-        if trello_card['name'] in WORKFLOW_CONFIG[HEADER_CARDS]:
-            print("del", trello_card['name'])
+        self.logger("starting check_and_delete_if_header")
+        if trello_card['name'] in config_data[HEADER_CARDS]:
             job_card_obj = JobCard.objects.filter(
                 trello_card_id=trello_card["id"]).first()
             if job_card_obj:

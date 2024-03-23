@@ -2,16 +2,7 @@ import os
 import requests
 import time
 
-trello_api_key = os.environ.get("TRELLO_API_KEY", None)
-trello_api_token = os.environ.get("TRELLO_API_TOKEN", None)
-
-if not trello_api_key:
-    print("trello_api_key not found")
-    exit(0)
-
-if not trello_api_token:
-    print("trello_api_token not found")
-    exit(0)
+from server.settings import trello_api_key, trello_api_token
 
 
 class TrelloParent:

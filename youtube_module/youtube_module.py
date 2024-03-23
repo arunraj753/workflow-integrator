@@ -2,7 +2,7 @@ from googleapiclient.discovery import build
 import os
 import json
 
-youtube_api_key = os.environ.get("YOUTUBE_API_KEY")
+from server.settings import youtube_api_key
 
 
 class YoutubeModule:
